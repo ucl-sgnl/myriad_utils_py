@@ -3,10 +3,9 @@ import subprocess
 import shutil
 
 # Constants
-MISSION = "noref_GPSIIF_v06"
+
 SCRATCH_DIR = "Scratch"
-SRP_TRR_CLASSIC_PATH = "/home/zcesccc/srp_trr_classic/bin/srp_trr_classic"
-UTILS_DIR = "utils"
+SRP_TRR_CLASSIC_PATH = "/srp_trr_classic/bin/srp_trr_classic"
 RES_DIR = "res"
 HOME_DIR = "."
 
@@ -49,13 +48,12 @@ def generate_parameter_files(template_filename, output_prefix, num_files=10000):
                     line = "n_points     = 10000\n"
                 output_file.write(line)
 
-def setup_environment(mission, mass, utils_dir, res_dir, home_dir):
+def setup_environment(mission, mass, res_dir, home_dir):
     """
     Sets up the environment for UCL SRP force model computation.
 
     :param mission: Name of the mission.
     :param mass: Mass of the spacecraft.
-    :param utils_dir: Directory where utility scripts are located.
     :param res_dir: Directory where resources are located.
     :param home_dir: Home directory path.
     """
@@ -88,11 +86,6 @@ def setup_environment(mission, mass, utils_dir, res_dir, home_dir):
     with open(f"{home_dir}/{mission}/parameters.txt", 'w') as file:
         file.writelines(lines)
 
-def run_srp_trr_classic(param_file, output_dir, job_id):
-    spacecraft_model = f"{HOME_DIR}/{MISSION}/{MISSION}.txt"
-    output_file = f"{output_dir}/output{str(job_id).zfill(5)}.txt"
-    subprocess.run([SRP_TRR_CLASSIC_PATH, param_file, spacecraft_model, output_file])
-
 def convert_line_endings_to_local(filename, output_prefix="local"):
     """
     Converts line endings in the file to Unix-style (LF) and writes to a new file.
@@ -124,7 +117,6 @@ def submit_jobs(srp_trr_classic_path, param_files_dir, spacecraft_model_file, ou
         
         subprocess.run(["qsub", job_script])
         os.remove(job_script)  # Delete the job script after submission
-
 
 def legion_check(output_dir, expected_files, logfile=None):
     """
@@ -199,10 +191,10 @@ def legion_combine(output_dir, combined_output_file, expected_files):
     with open(combined_output_file, 'w') as output_file:
         output_file.writelines(combined_data)
 
-def main(sc_mass, num_jobs):
-    setup_environment(MISSION, str(sc_mass), UTILS_DIR, RES_DIR, HOME_DIR)
+def main(sc_mass, num_jobs, mission_id):
+    setup_environment(mission_id, str(sc_mass), RES_DIR, HOME_DIR)
     
-    output_dir, param_dir = generate_directory_structure(SCRATCH_DIR, MISSION)
+    output_dir, param_dir = generate_directory_structure(SCRATCH_DIR, mission_id)
     param_file_template = os.path.join(RES_DIR, "parameters_template.txt")
     generate_parameter_files(param_file_template, os.path.join(param_dir, "params"), num_files=num_jobs)
 
@@ -212,7 +204,7 @@ def main(sc_mass, num_jobs):
     #     run_srp_trr_classic(param_file_path, output_dir, job_id)
 
     # For cluster: Submit jobs to the job scheduler
-    spacecraft_model_file = os.path.join(HOME_DIR, MISSION, f"{MISSION}.txt")
+    spacecraft_model_file = os.path.join(HOME_DIR, mission_id, f"{mission_id}.txt")
     submit_jobs(SRP_TRR_CLASSIC_PATH, param_dir, spacecraft_model_file, output_dir, total_jobs=num_jobs)
     
     # Post-job checks and file combining
@@ -220,4 +212,20 @@ def main(sc_mass, num_jobs):
     legion_combine(output_dir, os.path.join(HOME_DIR, 'combined_output.txt'), num_jobs)
 
 if __name__ == "__main__":
-    main(sc_mass=1663, num_jobs=100)
+    # main(sc_mass=1663, num_jobs=100)
+    #to make it so that i can run this from the command line and pass in the mass and number of jobs I need to do this:
+    
+    #when the script is called prompt the user to enter the mass and number of jobs
+    #then pass those values into the main function
+
+    #get the mass and number of jobs from the user
+    sc_mass = input("Enter the mass of the spacecraft: ")
+    num_jobs = input("Enter the number of jobs: ")
+    mission_id = input("Enter the mission ID: ")
+
+    #now run the main function with the mass and number of jobs
+    main(sc_mass, num_jobs, mission_id)
+    
+
+
+
