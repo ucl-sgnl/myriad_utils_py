@@ -23,13 +23,12 @@ def clear_directory(directory):
 
 def wait_for_jobs_to_complete():
     """Waits for all submitted jobs to complete before proceeding."""
-    print("Jobs still running...")
+    print("Waiting for jobs to complete...")
     jobs_running = True
     while jobs_running:
         time.sleep(60)  # Check every minute
-        result = subprocess.run(["qstat"], capture_output=True, text=True)
+        result = subprocess.run(["qstat"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if not result.stdout.strip():
-            print("All jobs completed.\nCombining output files...")
             jobs_running = False
 
 def generate_directory_structure(base_dir, mission):
