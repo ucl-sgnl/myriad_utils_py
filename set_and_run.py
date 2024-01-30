@@ -1,13 +1,36 @@
 import os
 import subprocess
 import shutil
-
+import time
 # Constants
 
 SCRATCH_DIR = "Scratch"
 SRP_TRR_CLASSIC_PATH = "/srp_trr_classic/bin/srp_trr_classic"
 RES_DIR = "res"
 HOME_DIR = "."
+
+def clear_directory(directory):
+    """Empties out a directory."""
+    for file in os.listdir(directory):
+        file_path = os.path.join(directory, file)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print(f'Failed to delete {file_path}. Reason: {e}')
+
+def wait_for_jobs_to_complete():
+    """Waits for all submitted jobs to complete before proceeding."""
+    print("Jobs still running...")
+    jobs_running = True
+    while jobs_running:
+        time.sleep(60)  # Check every minute
+        result = subprocess.run(["qstat"], capture_output=True, text=True)
+        if not result.stdout.strip():
+            print("All jobs completed.\nCombining output files...")
+            jobs_running = False
 
 def generate_directory_structure(base_dir, mission):
     """
@@ -195,35 +218,37 @@ def main(sc_mass, num_jobs, mission_id):
     setup_environment(mission_id, str(sc_mass), RES_DIR, HOME_DIR)
     
     output_dir, param_dir = generate_directory_structure(SCRATCH_DIR, mission_id)
+    
+    # Clear existing files in the output directory
+    clear_directory(output_dir)
+
     param_file_template = os.path.join(RES_DIR, "parameters_template.txt")
     generate_parameter_files(param_file_template, os.path.join(param_dir, "params"), num_files=num_jobs)
 
-    # For testing locally: Run srp_trr_classic for each param file
-    # for param_file_name in os.listdir(param_dir):
-    #     param_file_path = os.path.join(param_dir, param_file_name)
-    #     run_srp_trr_classic(param_file_path, output_dir, job_id)
-
-    # For cluster: Submit jobs to the job scheduler
+    # Submit jobs to the job scheduler
     spacecraft_model_file = os.path.join(HOME_DIR, mission_id, f"{mission_id}.txt")
     submit_jobs(SRP_TRR_CLASSIC_PATH, param_dir, spacecraft_model_file, output_dir, total_jobs=num_jobs)
     
+    # Wait for all jobs to complete
+    wait_for_jobs_to_complete()
+
     # Post-job checks and file combining
-    legion_check(output_dir, num_jobs, 'legion_check_log.txt')
-    legion_combine(output_dir, os.path.join(HOME_DIR, 'combined_output.txt'), num_jobs)
+    check_log_path = os.path.join(HOME_DIR, mission_id, 'legion_check_log.txt')  # Full path for the log file
+    combined_output_path = os.path.join(output_dir, 'combined_output.txt')  # Full path for combined output
+
+    legion_check(output_dir, num_jobs, check_log_path)
+    legion_combine(output_dir, combined_output_path, num_jobs)
 
 if __name__ == "__main__":
-    # main(sc_mass=1663, num_jobs=100)
-    #to make it so that i can run this from the command line and pass in the mass and number of jobs I need to do this:
-    
-    #when the script is called prompt the user to enter the mass and number of jobs
-    #then pass those values into the main function
-
-    #get the mass and number of jobs from the user
+    # Get the mass, number of jobs, and mission ID from the user
     sc_mass = input("Enter the mass of the spacecraft: ")
     num_jobs = input("Enter the number of jobs: ")
     mission_id = input("Enter the mission ID: ")
 
-    #now run the main function with the mass and number of jobs
+    # Convert num_jobs to integer
+    num_jobs = int(num_jobs)
+
+    # Run the main function with the provided values
     main(sc_mass, num_jobs, mission_id)
     
 
