@@ -9,18 +9,6 @@ SRP_TRR_CLASSIC_PATH = "/home/zcesccc/srp_trr_classic/bin/srp_trr_classic"
 RES_DIR = "res"
 HOME_DIR = "."
 
-def clear_directory(directory):
-    """Empties out a directory."""
-    for file in os.listdir(directory):
-        file_path = os.path.join(directory, file)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print(f'Failed to delete {file_path}. Reason: {e}')
-
 def wait_for_jobs_to_complete():
     """Waits for all submitted jobs to complete before proceeding."""
     print("Waiting for jobs to complete...")
