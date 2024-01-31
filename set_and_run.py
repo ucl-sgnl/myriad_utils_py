@@ -152,7 +152,6 @@ def submit_jobs(srp_trr_classic_path, param_files_dir, spacecraft_model_file, ou
     # Submit the job array script
     subprocess.run(["qsub", job_script_filename])
 
-
 def legion_check(output_dir, expected_files, logfile=None):
     """
     Checks the output of a Legion SRP job.
@@ -252,17 +251,37 @@ def main(sc_mass, num_jobs, mission_id, model_type, scheme, spacing, sr_option, 
     legion_check(output_dir, num_jobs, check_log_path)
     legion_combine(output_dir, combined_output_path, num_jobs)
 
+def main(mission_id, mode, sc_mass=None, num_jobs=None, model_type=None, scheme=None, spacing=None, sr_option=None, emissivity=None):
+    output_dir = os.path.join(SCRATCH_DIR, mission_id, "spiralPoints", "outputFiles")
+
+    if mode == "submit":
+        setup_environment(mission_id, str(sc_mass), RES_DIR, HOME_DIR)
+        param_dir = generate_directory_structure(SCRATCH_DIR, mission_id)
+        param_file_template = os.path.join(RES_DIR, "parameters_template.txt")
+        generate_parameter_files(param_file_template, os.path.join(param_dir, "params"), num_jobs, model_type, scheme, spacing, sr_option, emissivity)
+        spacecraft_model_file = os.path.join(HOME_DIR, mission_id, f"{mission_id}.txt")
+        submit_jobs(SRP_TRR_CLASSIC_PATH, param_dir, spacecraft_model_file, output_dir, total_jobs=num_jobs)
+        print("Jobs submitted. You can check the job status using 'qstat'.")
+    elif mode == "check":
+        check_log_path = os.path.join(HOME_DIR, mission_id, 'legion_check_log.txt')
+        legion_check(output_dir, num_jobs, check_log_path)
+    elif mode == "combine":
+        combined_output_path = os.path.join(output_dir, 'combined_output.txt')
+        legion_combine(output_dir, combined_output_path, num_jobs)
+
 if __name__ == "__main__":
-    sc_mass = input("Enter the mass of the spacecraft: ")
-    num_jobs = int(input("Enter the number of jobs: "))
     mission_id = input("Enter the mission ID: ")
-    model_type = input("Enter the type of modelling required (0 for SRP, 1 for SRP+TRR, 2 for TRR): ")
-    scheme = input("Enter the pixel array orientation scheme (0 for EPS angles, 1 for spiral points): ")
-    spacing = input("Enter the pixel spacing of array (m): ")
-    sr_option = input("Include secondary reflections? (Y or N): ")
-    emissivity = input("Enter the MLI emissivity for TRR models: ")
+    mode = input("Enter mode (submit/check/combine): ")
 
-    main(sc_mass, num_jobs, mission_id, model_type, scheme, spacing, sr_option, emissivity)
-
-
-
+    if mode == "submit":
+        sc_mass = input("Enter the mass of the spacecraft: ")
+        num_jobs = int(input("Enter the number of jobs: "))
+        model_type = input("Enter the type of modelling required (0 for SRP, 1 for SRP+TRR, 2 for TRR): ")
+        scheme = input("Enter the pixel array orientation scheme (0 for EPS angles, 1 for spiral points): ")
+        spacing = input("Enter the pixel spacing of array (m): ")
+        sr_option = input("Include secondary reflections? (Y or N): ")
+        emissivity = input("Enter the MLI emissivity for TRR models: ")
+        main(mission_id, mode, sc_mass, num_jobs, model_type, scheme, spacing, sr_option, emissivity)
+    else:
+        num_jobs = int(input("Enter the number of jobs to check/combine: "))
+        main(mission_id, mode, num_jobs=num_jobs)
