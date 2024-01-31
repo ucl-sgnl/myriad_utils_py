@@ -252,22 +252,22 @@ def main(sc_mass, num_jobs, mission_id, model_type, scheme, spacing, sr_option, 
     legion_combine(output_dir, combined_output_path, num_jobs)
 
 def main(mission_id, mode, sc_mass=None, num_jobs=None, model_type=None, scheme=None, spacing=None, sr_option=None, emissivity=None):
-    output_dir = os.path.join(SCRATCH_DIR, mission_id, "spiralPoints", "outputFiles")
-
     if mode == "submit":
         setup_environment(mission_id, str(sc_mass), RES_DIR, HOME_DIR)
-        param_dir = generate_directory_structure(SCRATCH_DIR, mission_id)
+        output_dir, param_dir = generate_directory_structure(SCRATCH_DIR, mission_id)
         param_file_template = os.path.join(RES_DIR, "parameters_template.txt")
         generate_parameter_files(param_file_template, os.path.join(param_dir, "params"), num_jobs, model_type, scheme, spacing, sr_option, emissivity)
         spacecraft_model_file = os.path.join(HOME_DIR, mission_id, f"{mission_id}.txt")
         submit_jobs(SRP_TRR_CLASSIC_PATH, param_dir, spacecraft_model_file, output_dir, total_jobs=num_jobs)
         print("Jobs submitted. You can check the job status using 'qstat'.")
-    elif mode == "check":
-        check_log_path = os.path.join(HOME_DIR, mission_id, 'legion_check_log.txt')
-        legion_check(output_dir, num_jobs, check_log_path)
-    elif mode == "combine":
-        combined_output_path = os.path.join(output_dir, 'combined_output.txt')
-        legion_combine(output_dir, combined_output_path, num_jobs)
+    elif mode == "check" or mode == "combine":
+        output_dir = os.path.join(SCRATCH_DIR, mission_id, "spiralPoints", "outputFiles")
+        if mode == "check":
+            check_log_path = os.path.join(HOME_DIR, mission_id, 'legion_check_log.txt')
+            legion_check(output_dir, num_jobs, check_log_path)
+        elif mode == "combine":
+            combined_output_path = os.path.join(output_dir, 'combined_output.txt')
+            legion_combine(output_dir, combined_output_path, num_jobs)
 
 if __name__ == "__main__":
     mission_id = input("Enter the mission ID: ")
