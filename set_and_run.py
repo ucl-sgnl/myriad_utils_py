@@ -210,17 +210,24 @@ def legion_combine(output_dir, combined_output_file, expected_files):
 
     # Read data from each output file
     for i in range(1, expected_files + 1):
-        file_name = f"output{str(i).zfill(len(str(expected_files)))}.txt"
+        file_name = f"output{str(i).zfill(5)}.txt"
         file_path = os.path.join(output_dir, file_name)
         if os.path.exists(file_path):
             with open(file_path, 'r') as file:
                 lines = file.readlines()[1:]  # Skip header line
                 combined_data.extend(lines)
+        else:
+            print(f"Warning: File {file_path} not found.")
 
-    combined_data.sort(key=lambda x: float(x.split()[0]), reverse=True)
- 
+    # Attempt to sort combined data based on the first column (if it's numeric)
+    try:
+        combined_data.sort(key=lambda x: float(x.split(',')[0]))
+    except ValueError:
+        print("Warning: Unable to sort combined data numerically. Data will be combined as is.")
+
     # Write combined data to a file
     with open(combined_output_file, 'w') as output_file:
+        output_file.write("Sun_lat,Sun_lon,acc_X,acc_Y,acc_Z,EPS_angle\n")  # Adding header
         output_file.writelines(combined_data)
 
 def main(sc_mass, num_jobs, mission_id, model_type, scheme, spacing, sr_option, emissivity):
