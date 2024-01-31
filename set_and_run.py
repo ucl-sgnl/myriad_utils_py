@@ -122,21 +122,36 @@ def convert_line_endings_to_local(filename, output_prefix="local"):
 
 def submit_jobs(srp_trr_classic_path, param_files_dir, spacecraft_model_file, output_files_dir, total_jobs=10000):
     """
-    Submits jobs to the job scheduler and deletes the job scripts after submission.
+    Submits a job array to the job scheduler.
     """
-    for job_id in range(1, total_jobs + 1):
-        job_script_filename = f"job_script_{str(job_id).zfill(5)}.sh"
-        job_script = job_script_filename  # Temporary job script in the current directory
-        param_file = f"{param_files_dir}/params{str(job_id).zfill(5)}.txt"
-        output_file = f"{output_files_dir}/output{str(job_id).zfill(5)}.txt"
+    job_script_filename = "job_array_script.sh"
+    
+    with open(job_script_filename, "w") as file:
+        file.write("#!/bin/bash -l\n")
+        file.write("#$ -S /bin/bash\n")
+        file.write("#$ -l h_rt=5:00:0\n")
+        file.write("#$ -l mem=512M\n")
+        file.write(f"#$ -t 1-{total_jobs}\n")
+        file.write("#$ -N srp_trr_job_array\n")
+        file.write(f"#$ -wd {output_files_dir}\n\n")
 
-        with open(job_script, "w") as file:
-            file.write("#!/bin/bash\n")
-            cmd = f"{srp_trr_classic_path} {param_file} {spacecraft_model_file} {output_file}\n"
-            file.write(cmd)
+        file.write("module unload mkl/10.2.5/035\n")
+        file.write("module unload mpi/qlogic/1.2.7/intel\n")
+        file.write("module unload compilers/intel/11.1/072\n")
+        file.write("module load compilers/gnu/4.1.2\n")
+        file.write("module load mpi/qlogic/1.2.7/gnu\n\n")
+
+        # Adjust file number formatting
+        num_length = len(str(total_jobs))
+        file.write(f"param_file={param_files_dir}/params$(printf '%0{num_length}d' $SGE_TASK_ID).txt\n")
+        file.write(f"output_file={output_files_dir}/output$(printf '%0{num_length}d' $SGE_TASK_ID).txt\n\n")
         
-        subprocess.run(["qsub", job_script])
-        os.remove(job_script)
+        # Run the SRP-TRR software
+        file.write(f"{srp_trr_classic_path} $param_file {spacecraft_model_file} $output_file\n")
+
+    # Submit the job array script
+    subprocess.run(["qsub", job_script_filename])
+
 
 def legion_check(output_dir, expected_files, logfile=None):
     """
