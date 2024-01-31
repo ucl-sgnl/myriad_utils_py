@@ -9,15 +9,15 @@ eps_delta    = 1.0
 // end of range of EPS angles to calculate (degrees)
 eps_finish   = 30.0
 // start of index range of spiral points positions to calculate
-k_start      = 1
+k_start      = 5
 // end of index range of spiral points positions to calculate
-k_finish     = 10000
+k_finish     = 5
 // total number of spiral points positions
 n_points     = 10000
 // pixel spacing of array (m)
 spacing      = 0.001
 // option to include secondary reflections (Y or N)
-sr_option    = Y
+sr_option    = N
 // option to perturb spacecraft (Y or N)
 perturbed    = N
 // perturbing angle for non-nominal attitude analysis (degrees)
@@ -25,7 +25,7 @@ perturbation = 0.0
 // mass of spacecraft (kg)
 mass         = 1663
 // MLI emissivity for TRR models
-emissivity   = 1.0
+emissivity   = 0.0
 
 
 
