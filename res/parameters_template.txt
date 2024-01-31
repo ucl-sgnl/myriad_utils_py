@@ -1,7 +1,7 @@
 // type of modelling required (0. SRP, 1. SRP+TRR, or 2. TRR)
 model_type   = 0
 // pixel array orientation scheme (0. EPS angles 1. spiral points)
-scheme       = 0
+scheme       = 1
 // start of range of EPS angles to calculate (degrees)
 eps_start    = 30.0
 // EPS angle resolution (degrees)

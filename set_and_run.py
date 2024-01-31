@@ -5,7 +5,7 @@ import time
 # Constants
 
 SCRATCH_DIR = "Scratch"
-SRP_TRR_CLASSIC_PATH = "/srp_trr_classic/bin/srp_trr_classic"
+SRP_TRR_CLASSIC_PATH = "/home/zcesccc/srp_trr_classic/bin/srp_trr_classic"
 RES_DIR = "res"
 HOME_DIR = "."
 
@@ -26,8 +26,8 @@ def wait_for_jobs_to_complete():
     print("Waiting for jobs to complete...")
     jobs_running = True
     while jobs_running:
-        time.sleep(60)  # Check every minute
-        result = subprocess.run(["qstat"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        time.sleep(30)  # Check every 30sec
+        result = subprocess.run(["qstat"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         if not result.stdout.strip():
             jobs_running = False
 
@@ -43,30 +43,40 @@ def generate_directory_structure(base_dir, mission):
 
     return output_dir, param_dir
 
-def generate_parameter_files(template_filename, output_prefix, num_files=10000):
+def generate_parameter_files(template_filename, output_prefix, num_files, model_type, scheme, spacing, sr_option, emissivity):
     """
     Generates parameter files based on a template.
-
     :param template_filename: Path to the template file.
     :param output_prefix: Prefix for the output files.
     :param num_files: Number of parameter files to generate.
+    :param model_type: Type of modelling required.
+    :param scheme: Pixel array orientation scheme.
+    :param spacing: Pixel spacing of array.
+    :param sr_option: Option to include secondary reflections.
+    :param emissivity: MLI emissivity for TRR models.
     """
-    # Read the template file
     with open(template_filename, 'r') as template_file:
         template_content = template_file.readlines()
 
-    # Generate parameter files
     for i in range(1, num_files + 1):
         output_filename = f"{output_prefix}{str(i).zfill(5)}.txt"
         with open(output_filename, 'w') as output_file:
             for line in template_content:
-                if line.startswith("scheme"):
-                    line = "scheme       = 1\n"
-                elif line.startswith("k_s"):
+                if line.startswith("// model_type"):
+                    line = f"model_type   = {model_type}\n"
+                elif line.startswith("// scheme"):
+                    line = f"scheme       = {scheme}\n"
+                elif line.startswith("// spacing"):
+                    line = f"spacing      = {spacing}\n"
+                elif line.startswith("// sr_option"):
+                    line = f"sr_option    = {sr_option}\n"
+                elif line.startswith("// emissivity"):
+                    line = f"emissivity   = {emissivity}\n"
+                elif line.startswith("// k_start"):
                     line = f"k_start      = {i}\n"
-                elif line.startswith("k_f"):
+                elif line.startswith("// k_finish"):
                     line = f"k_finish     = {i}\n"
-                elif line.startswith("n_p"):
+                elif line.startswith("// n_points"):
                     line = "n_points     = 10000\n"
                 output_file.write(line)
 
@@ -130,7 +140,7 @@ def submit_jobs(srp_trr_classic_path, param_files_dir, spacecraft_model_file, ou
         job_script_filename = f"job_script_{str(job_id).zfill(5)}.sh"
         job_script = job_script_filename  # Temporary job script in the current directory
         param_file = f"{param_files_dir}/params{str(job_id).zfill(5)}.txt"
-        output_file = f"{output_files_dir}/output{str(job_id).zfill(5)}.txt"  # Ensure this path is correct
+        output_file = f"{output_files_dir}/output{str(job_id).zfill(5)}.txt"
 
         with open(job_script, "w") as file:
             file.write("#!/bin/bash\n")
@@ -213,43 +223,36 @@ def legion_combine(output_dir, combined_output_file, expected_files):
     with open(combined_output_file, 'w') as output_file:
         output_file.writelines(combined_data)
 
-def main(sc_mass, num_jobs, mission_id):
+def main(sc_mass, num_jobs, mission_id, model_type, scheme, spacing, sr_option, emissivity):
     setup_environment(mission_id, str(sc_mass), RES_DIR, HOME_DIR)
     
     output_dir, param_dir = generate_directory_structure(SCRATCH_DIR, mission_id)
-    
-    # Clear existing files in the output directory
-    clear_directory(output_dir)
 
     param_file_template = os.path.join(RES_DIR, "parameters_template.txt")
-    generate_parameter_files(param_file_template, os.path.join(param_dir, "params"), num_files=num_jobs)
+    generate_parameter_files(param_file_template, os.path.join(param_dir, "params"), num_jobs, model_type, scheme, spacing, sr_option, emissivity)
 
-    # Submit jobs to the job scheduler
     spacecraft_model_file = os.path.join(HOME_DIR, mission_id, f"{mission_id}.txt")
     submit_jobs(SRP_TRR_CLASSIC_PATH, param_dir, spacecraft_model_file, output_dir, total_jobs=num_jobs)
     
-    # Wait for all jobs to complete
     wait_for_jobs_to_complete()
 
-    # Post-job checks and file combining
-    check_log_path = os.path.join(HOME_DIR, mission_id, 'legion_check_log.txt')  # Full path for the log file
-    combined_output_path = os.path.join(output_dir, 'combined_output.txt')  # Full path for combined output
+    check_log_path = os.path.join(HOME_DIR, mission_id, 'legion_check_log.txt')
+    combined_output_path = os.path.join(output_dir, 'combined_output.txt')
 
     legion_check(output_dir, num_jobs, check_log_path)
     legion_combine(output_dir, combined_output_path, num_jobs)
 
 if __name__ == "__main__":
-    # Get the mass, number of jobs, and mission ID from the user
     sc_mass = input("Enter the mass of the spacecraft: ")
-    num_jobs = input("Enter the number of jobs: ")
+    num_jobs = int(input("Enter the number of jobs: "))
     mission_id = input("Enter the mission ID: ")
+    model_type = input("Enter the type of modelling required (0 for SRP, 1 for SRP+TRR, 2 for TRR): ")
+    scheme = input("Enter the pixel array orientation scheme (0 for EPS angles, 1 for spiral points): ")
+    spacing = input("Enter the pixel spacing of array (m): ")
+    sr_option = input("Include secondary reflections? (Y or N): ")
+    emissivity = input("Enter the MLI emissivity for TRR models: ")
 
-    # Convert num_jobs to integer
-    num_jobs = int(num_jobs)
-
-    # Run the main function with the provided values
-    main(sc_mass, num_jobs, mission_id)
-    
+    main(sc_mass, num_jobs, mission_id, model_type, scheme, spacing, sr_option, emissivity)
 
 
 
