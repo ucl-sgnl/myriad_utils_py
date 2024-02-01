@@ -1,15 +1,20 @@
 # myriad_utils_py
 This repository contains the Python version of the myriad utilities designed to assist with spacecraft modeling and analysis on the Myriad cluster.
 
+The general workflow is as follows:
+
 ## Preparing Your Spacecraft Model
 Your spacecraft model should be a `.txt` file named after the mission ID and contained within a folder also named after the mission ID.
 
 ### Copying Files to Myriad
 Here are the steps to prepare and transfer your files to the Myriad cluster:
 1. **Copy Spacecraft Model to Myriad:**
+
 ```bash
-scp -r /Users/charlesc/Documents/GitHub/{MISSION_ID}/{MISSION_ID.txt} {UCL_ID}@myriad.rc.ucl.ac.uk:/home/{UCL_ID}/
+scp -r /your/file/directory/{MISSION_ID}/ {UCL_ID}@myriad.rc.ucl.ac.uk:/home/{UCL_ID}/
 ```
+The folder above should contain the spacecraft model and it should be named `MISSION_ID.txt`
+
 2. **Copy myriad_utils_py to Myriad:**
 
 to copy myriad_utils_py to the home directory on myriad:
