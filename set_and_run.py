@@ -66,7 +66,7 @@ def generate_parameter_files(template_filename, output_prefix, num_files, model_
                 elif line.strip().startswith("k_finish"):
                     output_file.write(f"k_finish     = {file_index}\n")
                 elif line.strip().startswith("n_points"):
-                    output_file.write("n_points     = 10000\n")
+                    output_file.write(f"n_points     = {num_files}\n")
                 else:
                     output_file.write(line)
 
