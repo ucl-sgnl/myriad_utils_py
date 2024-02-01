@@ -122,34 +122,33 @@ def convert_line_endings_to_local(filename, output_prefix="local"):
 
 def submit_jobs(srp_trr_classic_path, param_files_dir, spacecraft_model_file, output_files_dir, total_jobs=10000):
     """
-    Submits a job array to the job scheduler with full absolute paths.
+    Submits a job array to the job scheduler, ensuring correct argument passing.
     """
     job_script_filename = "job_array_script.sh"
-    home_directory = "/home/zcesccc/"  # Change this to the absolute path of your home directory if different
-    absolute_param_files_dir = os.path.join(home_directory, param_files_dir)
-    absolute_output_files_dir = os.path.join(home_directory, output_files_dir)
-    absolute_spacecraft_model_file = os.path.join(home_directory, spacecraft_model_file)
+    
+    # Ensure absolute paths are used for directories and files
+    absolute_output_files_dir = os.path.abspath(output_files_dir)
+    absolute_param_files_dir = os.path.abspath(param_files_dir)
+    absolute_spacecraft_model_file = os.path.abspath(spacecraft_model_file)
 
     with open(job_script_filename, "w") as file:
-        file.write("#!/bin/bash -l\n")
-        file.write("#$ -S /bin/bash\n")
-        file.write("#$ -l h_rt=5:00:0\n")
-        file.write("#$ -l mem=512M\n")
-        file.write(f"#$ -t 1-{total_jobs}\n")
-        file.write("#$ -N srp_trr_job_array\n")
-        file.write(f"#$ -wd {absolute_output_files_dir}\n\n")
-
-        file.write("module unload mkl/10.2.5/035\n")
-        file.write("module unload mpi/qlogic/1.2.7/intel\n")
-        file.write("module unload compilers/intel/11.1/072\n")
-        file.write("module load compilers/gnu/4.1.2\n")
-        file.write("module load mpi/qlogic/1.2.7/gnu\n\n")
-
-        num_length = len(str(total_jobs))
-        file.write(f"param_file={absolute_param_files_dir}/params$(printf '%0{num_length}d' $SGE_TASK_ID).txt\n")
-        file.write(f"output_file={absolute_output_files_dir}/output$(printf '%0{num_length}d' $SGE_TASK_ID).txt\n\n")
-        
-        file.write(f"{srp_trr_classic_path} $param_file {absolute_spacecraft_model_file} $output_file\n")
+        file.writelines([
+            "#!/bin/bash -l\n",
+            "#$ -S /bin/bash\n",
+            "#$ -l h_rt=5:00:0\n",
+            "#$ -l mem=512M\n",
+            f"#$ -t 1-{total_jobs}\n",
+            "#$ -N srp_trr_job_array\n",
+            f"#$ -wd {absolute_output_files_dir}\n\n",
+            "module unload mkl/10.2.5/035\n",
+            "module unload mpi/qlogic/1.2.7/intel\n",
+            "module unload compilers/intel/11.1/072\n",
+            "module load compilers/gnu/4.1.2\n",
+            "module load mpi/qlogic/1.2.7/gnu\n\n",
+            f"param_file={absolute_param_files_dir}/params$(printf '%05d' $SGE_TASK_ID).txt\n",
+            f"output_file={absolute_output_files_dir}/output$(printf '%05d' $SGE_TASK_ID).txt\n\n",
+            f"{srp_trr_classic_path} $param_file {absolute_spacecraft_model_file} $output_file\n"
+        ])
 
     subprocess.run(["qsub", job_script_filename])
 
