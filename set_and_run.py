@@ -4,10 +4,10 @@ import shutil
 import time
 # Constants
 
-SCRATCH_DIR = "Scratch"
-SRP_TRR_CLASSIC_PATH = "/home/zcesccc/srp_trr_classic/bin/srp_trr_classic"
-RES_DIR = "res"
-HOME_DIR = "."
+HOME_DIR = os.path.expanduser("~")
+SCRATCH_DIR = os.path.join(HOME_DIR, "Scratch")
+SRP_TRR_CLASSIC_PATH = os.path.join(HOME_DIR, "srp_trr_classic/bin/srp_trr_classic")
+RES_DIR = os.path.join(HOME_DIR, "res")
 
 def wait_for_jobs_to_complete():
     """Waits for all submitted jobs to complete before proceeding."""
