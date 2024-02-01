@@ -76,3 +76,4 @@ To download the combined output file to your local machine:
 - A Scratch directory is included for local edits, allowing for file path retention without needing to push code to Myriad repeatedly. This is not the myriad scratch directory that the jobs will actually be run into.
 - Run `set_and_run.py` outside of the `myriad_utils_py` directory to avoid path issues.
 - After submitting jobs, inspect the `outputFiles` and `paramFiles` folders to verify that your jobs are running as expected. Most useful error messages with appear here.
+- These instructions assume that you have followed the instructions in the [UCL Raditiation Force Modelling Wiki](https://ucl-sgnl.github.io/) and have a working version of `srp_trr` compiled on in your Myriad home directory.

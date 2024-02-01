@@ -2,7 +2,6 @@ import os
 import subprocess
 import shutil
 import time
-# Constants
 
 HOME_DIR = os.path.expanduser("~")
 SCRATCH_DIR = os.path.join(HOME_DIR, "Scratch")
