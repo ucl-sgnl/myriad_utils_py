@@ -189,16 +189,19 @@ def legion_check(output_dir, expected_files, logfile=None):
         for line in log_lines:
             print(line)
 
-    # Summary
+    # Summary with clearer success message
     if not missing_files and not line_count_issues:
-        summary = "No missing files, no repeated spiral points, and no error entries. Things check out."
+        success_message = "All checks passed successfully. No missing files, no repeated spiral points, and no error entries found."
+        print(success_message)
+        if logfile:
+            with open(logfile, 'a') as log_file:
+                log_file.write('\n' + success_message)
     else:
         summary = "There is a problem with one or more output files."
-    if logfile:
-        with open(logfile, 'a') as log_file:
-            log_file.write('\n' + summary)
-    else:
         print(summary)
+        if logfile:
+            with open(logfile, 'a') as log_file:
+                log_file.write('\n' + summary)
 
 def legion_combine(output_dir, combined_output_file, expected_files):
     """
