@@ -34,6 +34,7 @@ cp -r myriad_utils_py/res ../
 To submit jobs, check job status, or combine output files, use the `set_and_run.py` script as follows:
 
 1. **Submit Jobs:**
+simply follow the prompts to submit jobs. The script will automatically create the necessary folders and files in Scratch. The script will also automatically generate the `paramFile.txt` file for each job. The `paramFile.txt` file contains the parameters for each job, including the spacecraft mass, pixel spacing, and emissivity. The `paramFile.txt` file is used by the `run.py` script to run the jobs.
 ```bash
 python3 set_and_run.py
 Enter the mission ID: {MISSION_ID}
@@ -48,6 +49,7 @@ Enter the MLI emissivity for TRR models: 0.0
 ```
 
 2. **Check Jobs Ran Successfully:**
+This will check the status of the jobs and ensure that they ran successfully. If any jobs failed, the script will print a message to the console.
 ```bash
 python3 set_and_run.py
 Enter the mission ID: {MISSION_ID}
@@ -55,6 +57,7 @@ Enter mode (submit/check/combine): check
 ```
 
 3. **Combine Output Files:**
+This will combine all of the output files into a single file called `combined_output.txt` in the `outputFiles` folder. This file can then be downloaded to your local machine for analysis.
 ```bash
 python3 set_and_run.py
 Enter the mission ID: {MISSION_ID}
