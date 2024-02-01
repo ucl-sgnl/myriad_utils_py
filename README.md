@@ -4,8 +4,6 @@ This repository contains the Python version of the myriad utilities designed to 
 ## Preparing Your Spacecraft Model
 Your spacecraft model should be a `.txt` file named after the mission ID and contained within a folder also named after the mission ID.
 
-Your spacecraft model should be a .txt file with the same name as the mission ID and be contained in a folder with the same name as the mission ID.
-
 ### Copying Files to Myriad
 Here are the steps to prepare and transfer your files to the Myriad cluster:
 1. **Copy Spacecraft Model to Myriad:**
