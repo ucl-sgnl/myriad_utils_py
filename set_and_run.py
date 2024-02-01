@@ -9,16 +9,6 @@ SCRATCH_DIR = os.path.join(HOME_DIR, "Scratch")
 SRP_TRR_CLASSIC_PATH = os.path.join(HOME_DIR, "srp_trr_classic/bin/srp_trr_classic")
 RES_DIR = os.path.join(HOME_DIR, "res")
 
-def wait_for_jobs_to_complete():
-    """Waits for all submitted jobs to complete before proceeding."""
-    print("Waiting for jobs to complete...")
-    jobs_running = True
-    while jobs_running:
-        time.sleep(30)  # Check every 30sec
-        result = subprocess.run(["qstat"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-        if not result.stdout.strip():
-            jobs_running = False
-
 def generate_directory_structure(base_dir, mission):
     """
     Generates the directory structure for the given mission.
@@ -234,25 +224,6 @@ def legion_combine(output_dir, combined_output_file, expected_files):
     with open(combined_output_file, 'w') as output_file:
         output_file.write("Sun_lat,Sun_lon,acc_X,acc_Y,acc_Z,EPS_angle\n")  # Adding header
         output_file.writelines(combined_data)
-
-def main(sc_mass, num_jobs, mission_id, model_type, scheme, spacing, sr_option, emissivity):
-    setup_environment(mission_id, str(sc_mass), RES_DIR, HOME_DIR)
-    
-    output_dir, param_dir = generate_directory_structure(SCRATCH_DIR, mission_id)
-
-    param_file_template = os.path.join(RES_DIR, "parameters_template.txt")
-    generate_parameter_files(param_file_template, os.path.join(param_dir, "params"), num_jobs, model_type, scheme, spacing, sr_option, emissivity)
-
-    spacecraft_model_file = os.path.join(HOME_DIR, mission_id, f"{mission_id}.txt")
-    submit_jobs(SRP_TRR_CLASSIC_PATH, param_dir, spacecraft_model_file, output_dir, total_jobs=num_jobs)
-    
-    wait_for_jobs_to_complete()
-
-    check_log_path = os.path.join(HOME_DIR, mission_id, 'legion_check_log.txt')
-    combined_output_path = os.path.join(output_dir, 'combined_output.txt')
-
-    legion_check(output_dir, num_jobs, check_log_path)
-    legion_combine(output_dir, combined_output_path, num_jobs)
 
 def main(mission_id, mode, sc_mass=None, num_jobs=None, model_type=None, scheme=None, spacing=None, sr_option=None, emissivity=None):
     if mode == "submit":
