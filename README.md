@@ -46,14 +46,14 @@ Enter the MLI emissivity for TRR models: 0.0
 
 2. **Check Jobs Ran Successfully:**
 ```bash
-[zcesccc@login13 ~]$ python3 set_and_run.py
+python3 set_and_run.py
 Enter the mission ID: {MISSION_ID}
 Enter mode (submit/check/combine): check
 ```
 
 3. **Combine Output Files:**
 ```bash
-[zcesccc@login13 ~]$ python3 set_and_run.py
+python3 set_and_run.py
 Enter the mission ID: {MISSION_ID}
 Enter mode (submit/check/combine): combine
 number of files to combine: 10000
@@ -67,6 +67,6 @@ To download the combined output file to your local machine:
 
 ## Important Notes
 - This utility version is set up only for spiral points.
-- A Scratch directory is included for local edits, allowing for file path retention without needing to push code to Myriad repeatedly.
+- A Scratch directory is included for local edits, allowing for file path retention without needing to push code to Myriad repeatedly. This is not the myriad scratch directory that the jobs will actually be run into.
 - Run `set_and_run.py` outside of the `myriad_utils_py` directory to avoid path issues.
-- After submitting jobs, inspect the `outputFiles` and `paramFiles` folders to verify that your jobs are running as expected.
+- After submitting jobs, inspect the `outputFiles` and `paramFiles` folders to verify that your jobs are running as expected. Most useful error messages with appear here.
