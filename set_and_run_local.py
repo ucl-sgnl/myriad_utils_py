@@ -172,7 +172,7 @@ if __name__ == "__main__":
         sc_mass = input("Enter the mass of the spacecraft: ")
         num_jobs = int(input("Enter the number of jobs: "))
         model_type = input("Enter the type of modelling required (0 for SRP, 1 for SRP+TRR, 2 for TRR): ")
-        scheme = input("Enter the pixel array orientation scheme (0 for EPS angles, 1 for spiral points): ")
+        scheme = input("Enter the pixel array orientation scheme (0 for EPS angles, 1 for spiral points, 2 for AzEl): ")
         spacing = input("Enter the pixel spacing of array (m): ")
         sr_option = input("Include secondary reflections? (Y or N): ")
         emissivity = input("Enter the MLI emissivity for TRR models: ")

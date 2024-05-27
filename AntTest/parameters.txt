@@ -1,7 +1,7 @@
 // type of modelling required (0. SRP, 1. SRP+TRR, or 2. TRR)
 model_type   = 0
 // pixel array orientation scheme (0. EPS angles 1. spiral points)
-scheme       = 1
+scheme       = 2
 // start of range of EPS angles to calculate (degrees)
 eps_start    = 0.0
 // EPS angle resolution (degrees)
@@ -17,7 +17,7 @@ n_points     = 100
 // pixel spacing of array (m)
 spacing      = 0.001
 // option to include secondary reflections (Y or N)
-sr_option    = N
+sr_option    = Y
 // option to perturb spacecraft (Y or N)
 perturbed    = N
 // perturbing angle for non-nominal attitude analysis (degrees)
